@@ -66,9 +66,6 @@
             <li><strong>(2) 反映「支、之、脂、微」之別：</strong>在中古音的分類中，這幾個韻類在現代優勢腔中大多已經合併，但在保留老泉州話特徵的層次中，透過 er 或 ir 的加入，可以區分出不同的古代韻類。</li>
             <li><strong>(3) 層次辨識：</strong>這代表該字屬於較古老的歷史層次（如六朝層），用來區別那些在現代腔調中已經聽不出差別的古代韻類。</li>
         </ul>
-        <p><strong>Podcast:</strong> <a href="https://twgo.io/sound" target="_blank">https://twgo.io/sound</a><br>
-           <strong>相關資料:</strong> <a href="https://twgo.io/hello" target="_blank">https://twgo.io/hello</a><br>
-           <strong>聯絡信箱:</strong> cho.yi.hsiang@gmail.com</p>
     </div>
 </div>
 
@@ -2523,7 +2520,9 @@ const dict = {
 }; 
 
 function updateColor(rt) {
-    let tone = rt.innerText.trim().slice(-1);
+    let text = rt.innerText.trim();
+    let tone = text.slice(-1);
+    // 若最後一位是數字 1 或 5 則為平聲
     rt.className = (tone === "1" || tone === "5") ? "ping" : "ze";
 }
 
@@ -2544,16 +2543,20 @@ function process() {
         charSpan.className = "editable-char";
         charSpan.contentEditable = true;
         charSpan.innerText = char;
+        
         let rt = document.createElement('rt');
         rt.contentEditable = true;
         rt.innerText = dict[char] || "?";
         updateColor(rt);
+        
         charSpan.addEventListener('input', function() {
+            let val = this.innerText.trim();
             let targetRt = this.parentElement.querySelector('rt');
-            targetRt.innerText = dict[this.innerText.trim()] || "?";
+            targetRt.innerText = dict[val] || "?";
             updateColor(targetRt);
         });
         rt.addEventListener('input', function() { updateColor(this); });
+        
         ruby.appendChild(charSpan);
         ruby.appendChild(rt);
         outputDiv.appendChild(ruby);
