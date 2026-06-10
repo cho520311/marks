@@ -24,28 +24,18 @@
         .ping { color: var(--classic-blue) !important; } 
         .ze { color: var(--classic-red) !important; }
         
-        /* 修正標點符號偏下方的問題 */
-        .punctuation {
-            border-bottom: none !important;
-            display: inline-block;
-            transform: translateY(-0.15em); 
-            line-height: 1.2 !important;
-        }
-        
+        /* 讓標點符號專屬的 ruby 標籤不顯示底部的虛線 */
+        .punc-ruby .editable-char { border-bottom: none !important; cursor: default; }
+
         .info-section { margin-top: 50px; padding: 20px; border: 1px solid #d4af37; background: #fffdf9; line-height: 1.8; }
         .info-section h3 { color: var(--classic-red); }
         .info-link { color: var(--classic-blue); text-decoration: underline; }
 
-        /* =======================================================
-           【新增】列印/PDF 專用樣式隱藏設定
-           當使用者按下物理列印或另存 PDF 時，會自動隱藏紅色框框與輸入控制區
-           ======================================================= */
+        /* 列印/PDF 專用樣式：自動隱藏說明區域與按鈕 */
         @media print {
-            /* 隱藏輸入框、按鈕群組以及底部的說明聯絡欄位（紅色框框） */
             textarea, .btn-group, #infoBox {
                 display: none !important;
             }
-            /* 移除外層容器的邊框與陰影，讓 PDF 像真正的紙張書卷 */
             .container {
                 border: none !important;
                 box-shadow: none !important;
@@ -2542,12 +2532,17 @@ const dict = {
   "鶲": "ong", "烏": "oo", "槓": "kang", "冲": "tshiong", "啓": "ké", "畓": "nám", "睏": "khùn", "嘛": "mâ", "硅": "hirk"
 
 }; 
+
 function process() {
     const input = document.getElementById('poemInput').value;
     const outputDiv = document.getElementById('output');
     outputDiv.innerHTML = '';
 
+    // 定義所有需要過濾並垂直平齊的標點符號
+    const punctuationRegex = /[，、。？！；：」「（）『』—…．,.\?!;:"'()]/;
+
     for (let char of input) {
+        // 1. 優先處理空白與換行
         if (/\s/.test(char)) {
             if (char === '\n') {
                 outputDiv.appendChild(document.createElement('br'));
@@ -2560,39 +2555,41 @@ function process() {
             continue;
         }
 
-        if (/[，、。？！；：」「（）『』—…．,.\?!;:"'()\d]/.test(char)) {
-            let ruby = document.createElement('ruby');
-            
-            let charSpan = document.createElement('span');
-            charSpan.className = "editable-char punctuation";
-            charSpan.innerText = char;
-            
-            let rt = document.createElement('rt');
-            rt.innerText = ""; 
-            
-            ruby.appendChild(charSpan);
-            ruby.appendChild(rt);
-            outputDiv.appendChild(ruby);
-            continue;
-        }
-
+        // 2. 建立標註容器
         let ruby = document.createElement('ruby');
         let charSpan = document.createElement('span');
         charSpan.className = "editable-char";
-        charSpan.contentEditable = true;
         charSpan.innerText = char;
         
         let rt = document.createElement('rt');
-        rt.contentEditable = true;
-        rt.innerText = dict[char] || "?";
         
-        charSpan.addEventListener('input', function() {
-            let val = this.innerText.trim();
-            let targetRt = this.parentElement.querySelector('rt');
-            targetRt.innerText = dict[val] || "?";
-            updateColor(targetRt);
-        });
-        rt.addEventListener('input', function() { updateColor(this); });
+        // 3. 【核心修正】檢查是否為標點符號
+        if (punctuationRegex.test(char)) {
+            // 是標點符號：放回 ruby 系統內確保高度完全平齊，但注音 rt 強制給空字串，徹底消滅問號！
+            ruby.className = "punc-ruby";
+            charSpan.contentEditable = false;
+            rt.contentEditable = false;
+            rt.innerText = ""; // 絕對不長問號
+        } else {
+            // 是中文字：允許編輯，並自動對應字典
+            charSpan.contentEditable = true;
+            rt.contentEditable = true;
+            rt.innerText = dict[char] || "?";
+            
+            // 即時字典查詢監聽器
+            charSpan.addEventListener('input', function() {
+                let val = this.innerText.trim();
+                let targetRt = this.parentElement.querySelector('rt');
+                // 如果在修改過程中不小心輸入了標點符號，也不給它問號
+                if (punctuationRegex.test(val)) {
+                    targetRt.innerText = "";
+                } else {
+                    targetRt.innerText = dict[val] || "?";
+                }
+                updateColor(targetRt);
+            });
+            rt.addEventListener('input', function() { updateColor(this); });
+        }
         
         updateColor(rt);
         ruby.appendChild(charSpan);
@@ -2602,7 +2599,12 @@ function process() {
 }
 
 function updateColor(rt) {
-    let tone = rt.innerText.trim().slice(-1);
+    let text = rt.innerText.trim();
+    if (!text) {
+        rt.className = ""; // 標點符號頭頂沒字，不給顏色
+        return;
+    }
+    let tone = text.slice(-1);
     rt.className = (tone === "1" || tone === "5") ? "ping" : "ze";
 }
 
