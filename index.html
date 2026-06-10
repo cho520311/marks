@@ -5,62 +5,73 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>古韻詩詞標註工具 - 瀛社三七同系統</title>
     <style>
-        :root { --paper-bg: #fdf5e6; --ink-black: #2c3e50; --classic-red: #a93226; --classic-blue: #2e59a7; --soft-gold: #d4af37; }
-        body { background-color: var(--paper-bg); font-family: "Kaiti TC", "KaiTi", "標楷體", serif; margin: 0; padding: 20px; }
-        .container { max-width: 850px; margin: auto; background: white; padding: 30px; border: 1px solid #ddd; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        :root {
+            --paper-bg: #fdf5e6; --ink-black: #2c3e50; 
+            --classic-red: #a93226; --classic-blue: #2e59a7; --soft-gold: #d4af37;
+        }
+        body {
+            background-color: var(--paper-bg);
+            background-image: linear-gradient(rgba(253, 245, 230, 0.7), rgba(253, 245, 230, 0.7)), 
+                              url('https://images.unsplash.com/photo-1571168128527-36e655610ec1?q=80&w=2000&auto=format&fit=crop');
+            background-size: cover; background-attachment: fixed;
+            font-family: "Kaiti TC", "KaiTi", "標楷體", serif;
+            margin: 0; display: flex; justify-content: center; padding: 10px;
+        }
+        .container {
+            max-width: 850px; width: 100%; background: rgba(255, 255, 255, 0.95); 
+            padding: 20px; border: 2px solid #ddd; border-radius: 4px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        #printHeader { display: none; text-align: center; border: 4px double var(--classic-red); padding: 20px; margin-bottom: 30px; position: relative; }
         .header-area { text-align: center; margin-bottom: 20px; }
-        h1 { color: var(--classic-red); font-size: 32px; }
-        .instructor { font-size: 20px; font-weight: bold; margin: 10px 0; }
-        textarea { width: 100%; height: 100px; font-size: 18px; padding: 10px; box-sizing: border-box; }
-        .btn-group { display: flex; gap: 10px; justify-content: center; margin: 20px 0; flex-wrap: wrap; }
-        button, .btn-link { padding: 8px 16px; border: 1px solid var(--classic-red); background: white; color: var(--classic-red); cursor: pointer; text-decoration: none; font-family: inherit; font-weight: bold; border-radius: 4px; }
-        button:hover { background: var(--classic-red); color: white; }
+        h1 { color: var(--classic-red); font-size: 32px; margin: 0; letter-spacing: 6px; font-weight: bold; }
+        .instructor { color: var(--ink-black); font-size: 22px; font-weight: bold; margin: 15px 0 5px 0; }
+        .subtitle { color: #444; font-size: 18px; margin: 5px 0; font-weight: bold; }
+        textarea { width: 100%; height: 120px; padding: 15px; font-size: 20px; border-radius: 4px; border: 1px solid #ccc; font-family: inherit; }
+        .btn-group { display: flex; gap: 10px; justify-content: center; margin: 25px 0; flex-wrap: wrap; }
+        button, .btn-link { font-family: inherit; font-weight: bold; font-size: 18px; padding: 10px 18px; border: 2px solid var(--classic-red); background: white; color: var(--classic-red); cursor: pointer; border-radius: 8px; text-decoration: none; }
+        button:hover, .btn-link:hover { background: var(--classic-red); color: white; }
         
-        /* 核心排版：音標在上，文字在下 */
-        #output { line-height: 4.5; font-size: 32px; text-align: center; border-top: 2px double var(--soft-gold); padding-top: 20px; }
+        /* 核心排版：音標在上 */
+        #output { line-height: 4; font-size: 36px; color: var(--ink-black); min-height: 150px; padding: 30px 10px; text-align: center; }
         ruby { display: inline-flex; flex-direction: column-reverse; align-items: center; margin: 0 0.15em; vertical-align: top; }
-        rt { font-size: 16px; font-weight: bold; cursor: text; line-height: 1.2; display: block; min-height: 1.2em; }
-        .editable-char { border-bottom: 1px dashed #999; cursor: text; outline: none; display: block; line-height: 1.2; }
+        rt { display: block; font-size: 18px; font-family: Arial, sans-serif; font-weight: bold; cursor: text; line-height: 1.1; padding: 2px 4px; }
+        .editable-char { display: block; cursor: text; border-bottom: 1px dashed #999; min-width: 1em; outline: none; }
+        
         .ping { color: var(--classic-blue) !important; } 
         .ze { color: var(--classic-red) !important; }
+        .info-section { margin-top: 30px; padding: 25px; border: 1px double var(--soft-gold); background: #fffdf9; font-size: 18px; line-height: 1.6; text-align: left; }
         
-        .info-section { margin-top: 50px; padding: 20px; border: 1px solid #d4af37; background: #fffdf9; line-height: 1.8; }
-        .info-section h3 { color: var(--classic-red); }
-        .info-link { color: var(--classic-blue); text-decoration: underline; }
+        @media print {
+            .header-area, textarea, .btn-group, .info-section { display: none !important; }
+            #printHeader { display: block !important; }
+            body { background: white; padding: 0; }
+        }
     </style>
 </head>
 <body>
 <div class="container">
+    <div id="printHeader">
+        <h1 style="font-size: 42px;">古韻詩詞標註彙編</h1>
+        <p>依《音韻闡微》/ 三七同方式拼音</p>
+    </div>
     <div class="header-area">
         <h1>古韻詩詞標註</h1>
         <div class="instructor">瀛社 林正三老師 吳秀真老師 指導</div>
-        <div class="subtitle">依《音韻闡微》清 · 李光地 / 三七同方式拼音</div>
     </div>
-    
     <textarea id="poemInput" placeholder="請在此輸入詩句..."></textarea>
-    
     <div class="btn-group">
         <button onclick="process()">開始轉換</button>
         <button onclick="handlePrint()">列印/PDF</button>
         <a href="#infoBox" class="btn-link">說明聯絡</a>
-        <a href="https://tpps.org.tw/home.jsp?lang=tw" target="_blank" class="btn-link">臺灣瀛社詩學會</a>
-        <button onclick="location.reload()">刷新重置</button>
+        <button onclick="location.reload()" style="border-color:#666; color:#666;">刷新重置</button>
     </div>
-
     <div id="output"></div>
-
     <div id="infoBox" class="info-section">
         <h3>謝謝您的蒞臨指教</h3>
-        <p>有關音標中有 <strong>ir</strong> 或 <strong>er</strong> 的出現，茲解釋如下：</p>
         <ul>
-            <li><strong>(1) 區分中古音格局：</strong>研究顯示，在閩南方言的「白讀音」中，ir 和 er 的存在能反映出比《切韻》更古老的音韻對立。</li>
-            <li><strong>(2) 反映「支、之、脂、微」之別：</strong>在中古音的分類中，這些韻類在現代優勢腔中大多已經合併，但在保留老泉州話特徵的層次中，透過 er 或 ir 的加入，可以區分出不同的古代韻類。</li>
-            <li><strong>(3) 層次辨識：</strong>這代表該字屬於較古老的歷史層次（如六朝層），用來區別那些在現代腔調中已經聽不出差別的古代韻類。</li>
+            <li>(1) 區分中古音格局：在閩南方言「白讀音」中，ir/er 能反映比《切韻》更古老的對立。</li>
+            <li>(2) 反映韻類之別：區分現代合併但古代不同的「支、之、脂、微」韻類。</li>
         </ul>
-        <hr>
-        <p><strong>Podcast:</strong> <a href="https://twgo.io/sound" class="info-link">https://twgo.io/sound</a></p>
-        <p><strong>相關資料:</strong> <a href="https://twgo.io/hello" class="info-link">https://twgo.io/hello</a></p>
-        <p><strong>交流聯絡信箱:</strong> cho.yi.hsiang@gmail.com</p>
     </div>
 </div>
 
@@ -2513,56 +2524,58 @@ const dict = {
   "鶲": "ong", "烏": "oo", "槓": "kang", "冲": "tshiong", "啓": "ké", "畓": "nám", "睏": "khùn", "嘛": "mâ", "硅": "hirk"
 
 }; 
+
+function checkToneType(pinyin) {
+    if (!pinyin || pinyin === "?") return "ze";
+    const text = pinyin.trim().toLowerCase();
+    return /[15]$/.test(text) ? "ping" : "ze";
+}
+
+function updateColor(rt) {
+    rt.className = checkToneType(rt.innerText);
+}
+
 function process() {
     const input = document.getElementById('poemInput').value;
     const outputDiv = document.getElementById('output');
     outputDiv.innerHTML = "";
-
-    for (let char of input) {
-        if (char === '\n') { outputDiv.appendChild(document.createElement('br')); continue; }
-        if (/[，。？！\s\d]/.test(char)) {
+    input.split('\n').forEach(line => {
+        let div = document.createElement('div');
+        for (let char of line) {
+            if (!/[\u4E00-\u9FFF]/.test(char)) {
+                div.appendChild(document.createTextNode(char));
+                continue;
+            }
+            let ruby = document.createElement('ruby');
             let span = document.createElement('span');
+            span.className = "editable-char";
+            span.contentEditable = true;
             span.innerText = char;
-            outputDiv.appendChild(span);
-            continue;
+            
+            let rt = document.createElement('rt');
+            rt.contentEditable = true;
+            rt.innerText = dict[char] || "?";
+            updateColor(rt);
+            
+            span.addEventListener('input', function() {
+                let val = this.innerText.trim();
+                let targetRt = this.parentElement.querySelector('rt');
+                targetRt.innerText = dict[val] || "?";
+                updateColor(targetRt);
+            });
+            rt.addEventListener('input', function() { updateColor(this); });
+            
+            ruby.appendChild(span);
+            ruby.appendChild(rt);
+            div.appendChild(ruby);
         }
-
-        let ruby = document.createElement('ruby');
-        let charSpan = document.createElement('span');
-        charSpan.className = "editable-char";
-        charSpan.contentEditable = true;
-        charSpan.innerText = char;
-        
-        let rt = document.createElement('rt');
-        rt.contentEditable = true;
-        rt.innerText = dict[char] || "?";
-        
-        charSpan.addEventListener('input', function() {
-            let val = this.innerText.trim();
-            let targetRt = this.parentElement.querySelector('rt');
-            targetRt.innerText = dict[val] || "?";
-            updateColor(targetRt);
-        });
-        rt.addEventListener('input', function() { updateColor(this); });
-        
-        updateColor(rt);
-        ruby.appendChild(charSpan);
-        ruby.appendChild(rt);
-        outputDiv.appendChild(ruby);
-    }
-}
-
-function updateColor(rt) {
-    let tone = rt.innerText.trim().slice(-1);
-    rt.className = (tone === "1" || tone === "5") ? "ping" : "ze";
+        outputDiv.appendChild(div);
+    });
 }
 
 function handlePrint() {
     const input = document.getElementById('poemInput').value.trim();
-    if (input) {
-        const firstLine = input.split('\n')[0].substring(0, 10);
-        document.title = firstLine;
-    }
+    if (input) document.title = input.split('\n')[0].substring(0, 10);
     window.print();
 }
 </script>
